@@ -1,0 +1,43 @@
+# Build / CMake
+build/
+devel/
+install/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Catkin
+catkin_generated/
+catkin/
+gtest/
+test_results/
+
+# Compilación
+*.o
+*.a
+*.so
+*.so.*
+*.d
+*.la
+
+# Ejecutables generados
+bin/
+
+# Logs
+*.log
+*.bag
+
+# ROS
+.ros/
+ros_logs/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Temporales
+*.tmp
+*.swp
+*~
+.DS_Store

@@ -1291,3 +1291,318 @@ Después de recompilar, volver a ejecutar:
 ```bash
 "$HOME/Escritorio/orbvisense_navigator/build/orbvisense_navigator"
 ```
+
+# 19. FUNCIONAMIENTO GENERAL DE ORBVISENSE NAVIGATOR
+
+## 19.1. Requerimientos
+
+Para utilizar completamente **OrbVIsense Navigator** se requieren los siguientes elementos.
+
+### 1. Teléfono Android
+
+Se requiere un teléfono Android con la aplicación **OrbVIsense** instalada.
+
+La aplicación se encuentra en el repositorio:
+
+[HeyItsLuan/OrbVIsense — GitHub](https://github.com/HeyItsLuan/OrbVIsense?utm_source=chatgpt.com)
+
+### 2. Calibración del teléfono
+
+El teléfono debe estar previamente calibrado.
+
+La propia aplicación permite generar los datasets necesarios para realizar la calibración.
+
+El procedimiento de calibración se encuentra en:
+
+[HeyItsLuan/OrbVIsense-calibration — GitHub](https://github.com/HeyItsLuan/OrbVIsense-calibration?utm_source=chatgpt.com)
+
+La calibración debe realizarse antes de utilizar el teléfono para obtener resultados confiables con ORB-SLAM3.
+
+### 3. Conexión de red
+
+El teléfono Android y el computador deben estar conectados a la **misma red**.
+
+Se debe conocer la dirección IP del computador, ya que el computador funciona como **servidor** dentro de la comunicación entre el teléfono y ROS.
+
+### 4. Robot y comunicación WebSocket
+
+El robot debe tener configurada en su código la dirección IP del computador.
+
+El código del robot se encuentra en:
+
+[HeyItsLuan/OrbVIsense-robot — GitHub](https://github.com/HeyItsLuan/OrbVIsense-robot?utm_source=chatgpt.com)
+
+La IP configurada en el código del robot debe corresponder con la IP del computador que funciona como servidor.
+
+Además, la ESP32 debe encontrarse en modo de comunicación mediante WebSocket.
+
+Para activar este modo se debe presionar el botón **BOOT** de la ESP32.
+
+## 19.2. Uso de ORB-SLAM3 de forma independiente
+
+Una vez completados los pasos anteriores, es posible utilizar el **ORB-SLAM3 fork** con el teléfono Android siguiendo la arquitectura:
+
+```text
+Teléfono Android
+       │
+       │ WebSocket
+       ▼
+   Computador
+       │
+       ▼
+      ROS1
+       │
+       ▼
+   ORB-SLAM3
+```
+
+El sistema puede utilizarse de manera independiente hasta el **paso 14** de esta guía.
+
+En este punto es posible ejecutar ORB-SLAM3, recibir la cámara y el IMU del teléfono y generar mapas sin utilizar OrbVIsense Navigator.
+
+## 19.3. Generación de mapas para navegación
+
+Si además de utilizar ORB-SLAM3 se desea realizar **navegación autónoma**, se debe continuar con la instalación hasta OrbVIsense Navigator.
+
+Para navegar es necesario disponer previamente de un mapa.
+
+Los mapas pueden generarse utilizando ORB-SLAM3 desde el paso 14 de esta guía o utilizando el sistema junto con OrbVIsense Navigator.
+
+Para generar diferentes mapas o modificar la configuración utilizada por ORB-SLAM3, se puede modificar el archivo:
+
+```text
+$HOME/ros1_ws/src/orb_slam3_ros_wrapper/config/euroc.yaml
+```
+
+Los mapas generados por ORB-SLAM3 deben guardarse en formato:
+
+```text
+.osa
+```
+
+Estos archivos corresponden a los Atlas guardados por ORB-SLAM3 y son los que posteriormente puede cargar OrbVIsense Navigator.
+
+# 19.4. Flujo de navegación en OrbVIsense Navigator
+
+Una vez generado un mapa `.osa`, se puede utilizar OrbVIsense Navigator para realizar la navegación.
+
+### Paso 1. Cargar el mapa
+
+En OrbVIsense Navigator se debe utilizar el botón **Load**.
+
+Se selecciona el mapa `.osa` que se desea utilizar.
+
+Después de seleccionar el archivo se debe esperar unos segundos mientras el mapa es cargado.
+
+### Paso 2. Activar la navegación
+
+Una vez cargado el mapa estará disponible la opción **Navigation**.
+
+Se debe presionar el botón para acceder a las herramientas de navegación.
+
+### Paso 3. Configurar la IP del robot
+
+Antes de comenzar la navegación se debe comprobar la configuración descrita en el apartado **18.2**.
+
+La dirección IP utilizada para publicar el mensaje PWM debe corresponder con la dirección del computador que funciona como servidor WebSocket.
+
+## 19.5. Calibración de la representación del robot sobre el mapa
+
+Al cargar un mapa, OrbVIsense Navigator representa inicialmente el robot en la coordenada:
+
+```text
+X = 0.0
+Y = 0.0
+```
+
+La representación inicial del tamaño del robot puede no corresponder exactamente con sus dimensiones reales.
+
+Por esta razón se plantea una calibración utilizando mediciones realizadas físicamente.
+
+### Datos necesarios
+
+Para realizar esta calibración se necesitan:
+
+* Una medida métrica real.
+* La distancia entre dos posiciones conocidas.
+* La longitud real del robot.
+* Las coordenadas de dos poses válidas obtenidas mediante ORB-SLAM3.
+
+### Obtener las dos poses
+
+Primero se debe activar ORB-SLAM3 mediante el botón:
+
+**Enable ORB-SLAM3**
+
+Una vez iniciado ORB-SLAM3, se debe seleccionar el modo:
+
+**Localization**
+
+Después se mueve físicamente el robot sobre el mapa.
+
+ORB-SLAM3 proporcionará la pose estimada del robot.
+
+Para visualizar esta pose dentro de OrbVIsense Navigator se debe activar:
+
+**Enable Reception**
+
+Esto permite recibir el topic de pose publicado por ORB-SLAM3 y dibujar la posición del robot sobre el mapa.
+
+Se deben seleccionar dos posiciones físicamente diferentes del robot que produzcan una **pose válida**.
+
+Una pose se considera válida cuando sus coordenadas no corresponden a:
+
+```text
+X = 0.0
+Y = 0.0
+```
+
+Las dos posiciones deben registrarse y medirse físicamente.
+
+### Cálculo de la escala del robot
+
+Se tendrán entonces:
+
+* Distancia métrica real entre las dos posiciones.
+* Distancia entre las dos posiciones en coordenadas del mapa.
+* Longitud real del robot.
+
+La distancia entre las dos poses del mapa se calcula a partir de sus coordenadas.
+
+Después se obtiene el valor representativo del robot en puntos mediante:
+
+```text
+Representación del robot =
+(Longitud real del robot × distancia entre las dos poses en coordenadas)
+/
+Distancia métrica real entre las dos poses
+```
+
+De esta manera se obtiene el tamaño que debe utilizar el programa para representar el robot correctamente dentro del mapa.
+
+El valor calculado puede utilizarse para modificar el parámetro correspondiente descrito en el apartado **18.1**.
+
+## 19.6. Herramientas de edición del mapa
+
+Después de cargar un mapa, OrbVIsense Navigator proporciona herramientas para preparar el mapa antes de calcular una ruta.
+
+### Select Contour
+
+El botón **Select Contour** permite seleccionar una región del mapa.
+
+Después de activar esta herramienta se puede hacer clic sobre el mapa para seleccionar un contorno interno.
+
+El contorno seleccionado permite definir una región que será utilizada posteriormente durante el cálculo de la ruta.
+
+También se muestran las coordenadas correspondientes al punto seleccionado.
+
+### Delete Selected
+
+El botón **Delete Selected** permite eliminar puntos del mapa.
+
+Esta herramienta es útil cuando existen:
+
+* Puntos falsos.
+* Puntos aislados.
+* Puntos que generan contactos inexistentes.
+* Puntos que impiden definir correctamente un contorno interno.
+
+Los puntos pueden seleccionarse mediante clic izquierdo.
+
+También es posible mantener presionado el clic izquierdo para seleccionar una región de puntos.
+
+### Eliminación de puntos extremos en Z
+
+El mapa utilizado para la navegación corresponde principalmente al plano:
+
+```text
+X-Y
+```
+
+Por lo tanto, la coordenada `Z`, que representa la altura, no es necesaria para la navegación bidimensional.
+
+Sin embargo, pueden existir puntos con valores de `Z` extremos que aparezcan como obstáculos o contactos falsos al proyectarse sobre el mapa.
+
+OrbVIsense Navigator permite eliminar estos puntos mediante los controles correspondientes.
+
+Al utilizar las flechas se eliminan progresivamente los valores situados a la derecha o a la izquierda de los límites establecidos.
+
+Esto permite reducir los puntos extremos de la coordenada `Z` y conservar únicamente la información relevante para la navegación en el plano `X-Y`.
+
+## 19.7. Activación completa del sistema
+
+El botón:
+
+**Enable ORB-SLAM3**
+
+permite iniciar simultáneamente los componentes necesarios para utilizar el sistema:
+
+* WebSocket.
+* `jpeg_to_mono`.
+* ORB-SLAM3 fork.
+
+Una vez activado, se habilita en el panel izquierdo la sección de herramientas de navegación.
+
+### Enable Reception
+
+El botón **Enable Reception** permite recibir desde ORB-SLAM3 el topic correspondiente a la pose del robot.
+
+El panel muestra información sobre:
+
+* Estado de la recepción.
+* Posición del robot.
+* Orientación del robot.
+
+La pose recibida se representa directamente sobre el mapa cargado.
+
+## 19.8. Selección del punto B
+
+El botón para marcar el **punto B** permite seleccionar sobre el mapa el lugar al que se desea desplazar el robot.
+
+Después de activar esta herramienta, se debe hacer clic sobre la posición de destino dentro del mapa.
+
+Una vez seleccionado el punto B, OrbVIsense Navigator muestra sus coordenadas en pantalla.
+
+## 19.9. Cálculo de la ruta
+
+Con el robot localizado y el punto B seleccionado se utiliza:
+
+**Calculate Route**
+
+El programa calcula una ruta utilizando:
+
+* Los límites del mapa.
+* La posición actual del robot.
+* El tamaño del robot.
+* El punto B seleccionado.
+* Las regiones disponibles para desplazamiento.
+
+Si existe una ruta válida, esta se dibuja sobre el mapa.
+
+Si no existe una ruta posible, el programa informa que el destino no puede alcanzarse desde la posición actual.
+
+## 19.10. Inicio de la navegación
+
+Cuando existe una ruta válida se debe presionar:
+
+**Start Route**
+
+El robot comenzará a desplazarse desde su posición actual hacia el punto B siguiendo la ruta calculada.
+
+Durante el desplazamiento, el sistema utiliza la pose proporcionada por ORB-SLAM3 para determinar la posición y orientación actual del robot.
+
+## 19.11. Tolerancias y recálculo de ruta
+
+El robot utiliza tolerancias para determinar:
+
+* Cuándo ha llegado al punto de destino.
+* Cuándo se ha desviado de la ruta calculada.
+* Cuándo debe corregir su trayectoria.
+
+Si el robot se desvía de la ruta, el sistema espera aproximadamente **2 segundos** y calcula una nueva ruta desde la posición actual.
+
+Si el robot pierde la pose válida, el sistema intenta recuperar una pose válida mediante el movimiento del robot.
+
+Una vez recuperada una pose válida, el sistema puede volver a calcular la ruta desde la nueva posición.
+
+De esta manera, la navegación puede adaptarse a desviaciones del robot y a cambios en la estimación de la pose.

@@ -1114,3 +1114,180 @@ $HOME/ros1_ws/src/jpeg_to_mono
 ```text
 $HOME/ros1_ws/src/rosbridge_suite
 ```
+# 17. INSTALACIÓN DEL ORBVISENSE NAVIGATOR
+
+## 17.1. Instalación del mensaje ROS `robot_pwm`
+
+Copiar el paquete desde el repositorio de OrbVIsense Navigator:
+
+```bash
+cd "$HOME/ros1_ws/src"
+
+cp -r "$HOME/Escritorio/OrbVisense-Navigator/robot_pwm/robot_pwm" .
+```
+
+Compilar:
+
+```bash
+cd "$HOME/ros1_ws"
+
+source /opt/ros/noetic/setup.bash
+
+catkin_make -j1
+```
+
+Cargar el workspace:
+
+```bash
+source "$HOME/ros1_ws/devel/setup.bash"
+```
+
+Verificar el paquete:
+
+```bash
+rospack find robot_pwm
+```
+
+Debe devolver:
+
+```text
+$HOME/ros1_ws/src/robot_pwm
+```
+
+Verificar el contenido del mensaje:
+
+```bash
+rosmsg show robot_pwm/PWM
+```
+
+Debe mostrar:
+
+```text
+int16 left
+int16 right
+```
+
+## 17.2. Instalación de OrbVIsense Navigator
+
+Copiar el programa desde el repositorio:
+
+```bash
+cp -r "$HOME/Escritorio/OrbVisense-Navigator/orbvisense_navigator" \
+      "$HOME/Escritorio/"
+```
+
+Compilar:
+
+```bash
+cd "$HOME/Escritorio/orbvisense_navigator"
+
+export ORB_SLAM3_ROOT="$HOME/Escritorio/ORB_SLAM3_fork"
+
+rm -rf build
+
+cmake -S "$HOME/Escritorio/orbvisense_navigator" \
+      -B "$HOME/Escritorio/orbvisense_navigator/build" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DOpenCV_DIR=/usr/local/lib/cmake/opencv4
+
+cmake --build "$HOME/Escritorio/orbvisense_navigator/build" -j1
+```
+
+Antes de ejecutar el programa, cargar ROS y el workspace:
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+```
+
+Definir la ubicación de ORB-SLAM3:
+
+```bash
+export ORB_SLAM3_ROOT="$HOME/Escritorio/ORB_SLAM3_fork"
+```
+
+Configurar las bibliotecas necesarias:
+
+```bash
+export LD_LIBRARY_PATH="$HOME/Escritorio/ORB_SLAM3_fork/lib:$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/DBoW2/lib:$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/g2o/lib:/usr/local/lib:/opt/ros/noetic/lib:${LD_LIBRARY_PATH:-}"
+```
+
+El comando para iniciar OrbVIsense Navigator es:
+
+```bash
+"$HOME/Escritorio/orbvisense_navigator/build/orbvisense_navigator"
+```
+
+## 17.3. Comandos de ejecución
+
+### Terminal 1 — ROSCORE
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+
+roscore
+```
+
+### Terminal 2 — OrbVIsense Navigator
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+
+export ORB_SLAM3_ROOT="$HOME/Escritorio/ORB_SLAM3_fork"
+
+export LD_LIBRARY_PATH="$HOME/Escritorio/ORB_SLAM3_fork/lib:$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/DBoW2/lib:$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/g2o/lib:/usr/local/lib:/opt/ros/noetic/lib:${LD_LIBRARY_PATH:-}"
+
+"$HOME/Escritorio/orbvisense_navigator/build/orbvisense_navigator"
+```
+
+# 18. EDICIONES PERMITIDAS
+
+## 18.1. Modificación del tamaño del robot
+
+Para modificar el **tamaño del robot**, editar:
+
+```bash
+gedit "$HOME/Escritorio/orbvisense_navigator/NavigationWidget.h"
+```
+
+Buscar:
+
+```cpp
+static constexpr float mRobotScale = 0.10f;
+```
+
+Modificar el valor según el tamaño deseado.
+
+## 18.2. Modificación de la IP de transmisión del mensaje PWM
+
+Para cambiar la IP del WebSocket donde se publica el mensaje PWM, editar:
+
+```bash
+gedit "$HOME/Escritorio/orbvisense_navigator/MainWindow.cpp"
+```
+
+Buscar:
+
+```cpp
+<< "ws://10.42.0.1:9090";
+```
+
+Modificar la dirección IP según la configuración de la red.
+
+## 18.3. Recompilación
+
+Después de cualquier modificación del código:
+
+```bash
+cd "$HOME/Escritorio/orbvisense_navigator"
+
+cmake --build "$HOME/Escritorio/orbvisense_navigator/build" -j1
+```
+
+Después de recompilar, volver a ejecutar:
+
+```bash
+"$HOME/Escritorio/orbvisense_navigator/build/orbvisense_navigator"
+```

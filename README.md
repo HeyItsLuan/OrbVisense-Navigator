@@ -1,24 +1,24 @@
-# ESTA ES LA VERDADERA GUÍA DE REINSTALACIÓN COMPLETA
+# THIS IS THE ACTUAL COMPLETE REINSTALLATION GUIDE
 
 **ORB-SLAM3 FORK + ROS1 + ROSBRIDGE + JPEG_TO_MONO + OrbVIsense Navigator**
 
-Esta guía contiene el procedimiento completo para instalar **OrbVIsense Navigator** desde cero sobre **Ubuntu 20.04**, utilizando **ROS 1 Noetic** y el fork de **ORB-SLAM3** utilizado por el proyecto.
+This guide contains the complete procedure for installing **OrbVIsense Navigator** from scratch on **Ubuntu 20.04**, using **ROS 1 Noetic** and the **ORB-SLAM3 fork** used by the project.
 
-Antes de comenzar, es necesario contar con:
+Before starting, the following are required:
 
 * **Ubuntu 20.04**
 * **ROS 1 Noetic Desktop Full**
-* Las dependencias necesarias para compilar ORB-SLAM3, ROS y OrbVIsense Navigator.
+* The dependencies required to compile ORB-SLAM3, ROS, and OrbVIsense Navigator.
 * OpenCV 4.4.0
 * Pangolin v0.6
 
-Si el sistema todavía no cuenta con ROS 1 Noetic ni con las dependencias necesarias, realizar primero toda la sección de **Preinstalación**.
+If the system does not yet have ROS 1 Noetic or the required dependencies, first complete the entire **Pre-installation** section.
 
-## Preinstalación
+## Pre-installation
 
-### Instalación de ROS 1 Noetic en Ubuntu 20.04 (Desktop Full)
+### Installing ROS 1 Noetic on Ubuntu 20.04 (Desktop Full)
 
-#### Registrar el repositorio y las claves
+#### Register the repository and keys
 
 ```bash
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -29,13 +29,13 @@ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' \
 sudo apt update
 ```
 
-### 1. Cambiar el espejo de descargas de Ubuntu
+### 1. Change the Ubuntu download mirror
 
 ```bash
 sudo sed -i 's/co.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list
 ```
 
-### 2. Habilitar los repositorios requeridos
+### 2. Enable the required repositories
 
 ```bash
 sudo add-apt-repository universe -y
@@ -43,37 +43,37 @@ sudo add-apt-repository restricted -y
 sudo add-apt-repository multiverse -y
 ```
 
-### 3. Limpiar y actualizar los repositorios
+### 3. Clean and update the repositories
 
 ```bash
 sudo apt clean
 sudo apt update
 ```
 
-### 4. Instalar ROS Noetic
+### 4. Install ROS Noetic
 
 ```bash
 sudo apt --fix-broken install -y
 sudo apt install -y ros-noetic-desktop-full
 ```
 
-Si la instalación falla, intentar:
+If the installation fails, try:
 
 ```bash
 sudo apt update
 sudo apt install -y --fix-missing ros-noetic-desktop-full
 ```
 
-### 5. Finalizar la configuración de ROS
+### 5. Finish configuring ROS
 
-Agregar ROS Noetic al entorno:
+Add ROS Noetic to the environment:
 
 ```bash
 echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-Instalar las herramientas necesarias:
+Install the required tools:
 
 ```bash
 sudo apt install -y \
@@ -84,14 +84,14 @@ python3-wstool \
 build-essential
 ```
 
-Inicializar `rosdep`:
+Initialize `rosdep`:
 
 ```bash
 sudo rosdep init
 rosdep update
 ```
 
-### 6. DEPENDENCIAS BÁSICAS
+### 6. BASIC DEPENDENCIES
 
 ```bash
 sudo apt update
@@ -119,19 +119,19 @@ python3-dev \
 python3-numpy
 ```
 
-### 7. Preparar OpenCV 4.4
+### 7. Prepare OpenCV 4.4
 
-Primero comprobar qué versión de OpenCV está disponible mediante `pkg-config`:
+First check which OpenCV version is available through `pkg-config`:
 
 ```bash
 pkg-config --modversion opencv4
 ```
 
-Existen dos escenarios posibles.
+There are two possible scenarios.
 
-#### Si devuelve `4.2.0`
+#### If it returns `4.2.0`
 
-Ejecutar:
+Run:
 
 ```bash
 dpkg-query -W -f='${binary:Package}\t${Version}\n' \
@@ -142,20 +142,20 @@ awk '$2 ~ /^4\.2\.0/ {print $1}' |
 xargs -r sudo apt purge -y
 ```
 
-Después:
+Then:
 
 ```bash
 sudo apt autoremove -y
 sudo ldconfig
 ```
 
-#### Si `pkg-config` indica que `opencv4` no existe
+#### If `pkg-config` reports that `opencv4` does not exist
 
-No desinstalar nada y continuar directamente con la instalación de OpenCV 4.4.0.
+Do not uninstall anything and continue directly with the installation of OpenCV 4.4.0.
 
-#### Descargar OpenCV 4.4.0
+#### Download OpenCV 4.4.0
 
-Ahora, independientemente del escenario anterior:
+Now, regardless of the previous scenario:
 
 ```bash
 cd "$HOME/Escritorio"
@@ -164,25 +164,25 @@ wget -O opencv-4.4.0.zip \
 https://github.com/opencv/opencv/archive/4.4.0.zip
 ```
 
-Comprobar que el archivo se descargó correctamente:
+Check that the file was downloaded correctly:
 
 ```bash
 ls -lh "$HOME/Escritorio/opencv-4.4.0.zip"
 ```
 
-Extraer:
+Extract it:
 
 ```bash
 unzip -o "$HOME/Escritorio/opencv-4.4.0.zip"
 ```
 
-Entrar al código fuente:
+Enter the source directory:
 
 ```bash
 cd "$HOME/Escritorio/opencv-4.4.0"
 ```
 
-Configurar una compilación limpia:
+Configure a clean build:
 
 ```bash
 rm -rf build
@@ -190,7 +190,7 @@ mkdir build
 cd build
 ```
 
-Configurar CMake:
+Configure CMake:
 
 ```bash
 cmake .. \
@@ -198,27 +198,27 @@ cmake .. \
 -DCMAKE_INSTALL_PREFIX=/usr/local
 ```
 
-Compilar utilizando un solo núcleo para evitar saturar el sistema:
+Compile using a single core to avoid overloading the system:
 
 ```bash
 make -j1
 ```
 
-Instalar:
+Install:
 
 ```bash
 sudo make install
 sudo ldconfig
 ```
 
-Comprobar la versión instalada:
+Check the installed version:
 
 ```bash
 grep -n "OpenCV_VERSION" \
 /usr/local/lib/cmake/opencv4/OpenCVConfig-version.cmake
 ```
 
-Debe devolver:
+It should return:
 
 ```text
 4.4.0
@@ -226,7 +226,7 @@ Debe devolver:
 
 ### 8. Pangolin
 
-Clonar específicamente la versión **v0.6**:
+Clone specifically version **v0.6**:
 
 ```bash
 cd "$HOME"
@@ -238,13 +238,13 @@ https://github.com/stevenlovegrove/Pangolin.git \
 "$HOME/Pangolin"
 ```
 
-Entrar al directorio:
+Enter the directory:
 
 ```bash
 cd "$HOME/Pangolin"
 ```
 
-Preparar una compilación limpia:
+Prepare a clean build:
 
 ```bash
 rm -rf build
@@ -252,7 +252,7 @@ mkdir build
 cd build
 ```
 
-Configurar:
+Configure:
 
 ```bash
 cmake .. \
@@ -260,24 +260,24 @@ cmake .. \
 -DBUILD_PANGOLIN_PYTHON=OFF
 ```
 
-Compilar:
+Compile:
 
 ```bash
 make -j1
 ```
 
-Instalar:
+Install:
 
 ```bash
 sudo make install
 sudo ldconfig
 ```
 
-Con todos los cambios y dependencias anteriores realizados, ya es posible continuar con la instalación completa de **ORBSLAM3 fork**, siempre que el sistema no contara previamente con el entorno de **ROS 1 Noetic en Ubuntu 20.04** y sus dependencias.
+After completing all the changes and dependencies above, it is possible to continue with the complete installation of the **ORB-SLAM3 fork**, provided that the system did not already have the **ROS 1 Noetic environment on Ubuntu 20.04** and its dependencies.
 
-# 1. UBICACIÓN DEL PAQUETE DE REINSTALACIÓN
+# 1. REINSTALLATION PACKAGE LOCATION
 
-Descargar la carpeta `OrbVisense-Navigator` en el Escritorio.
+Download the `OrbVisense-Navigator` folder to the Desktop.
 
 ```bash
 cd "$HOME/Escritorio"
@@ -285,13 +285,13 @@ cd "$HOME/Escritorio"
 git clone https://github.com/HeyItsLuan/OrbVisense-Navigator.git
 ```
 
-La carpeta debe quedar ubicada en:
+The folder must be located at:
 
 ```text
 $HOME/Escritorio/OrbVisense-Navigator
 ```
 
-Contenido:
+Contents:
 
 ```text
 .
@@ -305,9 +305,9 @@ Contenido:
 ./robot_pwm/robot_pwm
 ```
 
-# 2. ENTORNO UTILIZADO
+# 2. ENVIRONMENT USED
 
-Sistema:
+System:
 
 ```text
 Ubuntu 20.04
@@ -325,27 +325,27 @@ Workspace:
 $HOME/ros1_ws
 ```
 
-# 3. REGLA DE COMPILACIÓN
+# 3. COMPILATION RULE
 
-**IMPORTANTE:**
+**IMPORTANT:**
 
-Utilizar siempre:
+Always use:
 
 ```bash
 make -j1
 ```
 
-y:
+and:
 
 ```bash
 catkin_make -j1
 ```
 
-El parámetro `-j1` indica que la compilación utilizará un solo proceso.
+The `-j1` parameter means that compilation will use a single process.
 
-Aunque el equipo pueda soportar compilaciones paralelas, se utilizará **siempre `-j1` durante la instalación y compilación del proyecto** para evitar saturar los recursos del sistema y reducir el riesgo de que el equipo se congele.
+Even if the computer can handle parallel compilation, **always use `-j1` during the installation and compilation of the project** to avoid overloading system resources and reduce the risk of the computer freezing.
 
-NO utilizar:
+DO NOT use:
 
 ```bash
 make -j4
@@ -353,29 +353,29 @@ make -j$(nproc)
 catkin_make -j4
 ```
 
-Si un archivo `build.sh` utiliza:
+If a `build.sh` file uses:
 
 ```bash
 make -j4
 ```
 
-cambiarlo por:
+change it to:
 
 ```bash
 make -j1
 ```
 
-Para editarlo:
+To edit it:
 
 ```bash
 gedit "$HOME/Escritorio/ORB_SLAM3_fork/build.sh"
 ```
 
-# 4. INSTALAR ORB-SLAM3 FORK
+# 4. INSTALL ORB-SLAM3 FORK
 
-Este es el primer paso real de la instalación.
+This is the first actual installation step.
 
-### 4.1. Clonar el fork de ORB-SLAM3
+### 4.1. Clone the ORB-SLAM3 fork
 
 ```bash
 cd "$HOME/Escritorio"
@@ -383,24 +383,24 @@ cd "$HOME/Escritorio"
 git clone https://github.com/Lab-of-AI-and-Robotics/ORB_SLAM3.git ORB_SLAM3_fork
 ```
 
-Esto crea:
+This creates:
 
 ```text
 $HOME/Escritorio/ORB_SLAM3_fork
 ```
 
-### 4.2. Copiar las modificaciones de OrbVIsense Navigator
+### 4.2. Copy the OrbVIsense Navigator modifications
 
-El repositorio `OrbVisense-Navigator` contiene los archivos `.cc` modificados del fork de ORB-SLAM3.
+The `OrbVisense-Navigator` repository contains the modified `.cc` files for the ORB-SLAM3 fork.
 
-Copiar los archivos:
+Copy the files:
 
 ```bash
 cp "$HOME/Escritorio/OrbVisense-Navigator/ORB_SLAM3_fork_src_mod/src/"*.cc \
    "$HOME/Escritorio/ORB_SLAM3_fork/src/"
 ```
 
-Los archivos modificados son:
+The modified files are:
 
 ```text
 FrameDrawer.cc
@@ -410,44 +410,44 @@ Optimizer.cc
 Tracking.cc
 ```
 
-El repositorio de OrbVIsense Navigator contiene únicamente estas modificaciones dentro de:
+The OrbVIsense Navigator repository contains only these modifications inside:
 
 ```text
 ORB_SLAM3_fork_src_mod/src/
 ```
 
-### 4.3. Verificar la configuración de OpenCV
+### 4.3. Verify the OpenCV configuration
 
-El `CMakeLists.txt` principal de ORB-SLAM3 debe utilizar **OpenCV 4.4**.
+The main ORB-SLAM3 `CMakeLists.txt` must use **OpenCV 4.4**.
 
-Comprobar qué versión solicita actualmente:
+Check which version it currently requests:
 
 ```bash
 grep -n "find_package(OpenCV" \
 "$HOME/Escritorio/ORB_SLAM3_fork/CMakeLists.txt"
 ```
 
-Debe aparecer:
+It should show:
 
 ```cmake
 find_package(OpenCV 4.4)
 ```
 
-Si aparece otra versión, abrir el archivo:
+If another version appears, open the file:
 
 ```bash
 gedit "$HOME/Escritorio/ORB_SLAM3_fork/CMakeLists.txt"
 ```
 
-y cambiar únicamente la versión de OpenCV para dejar:
+and change only the OpenCV version so that it contains:
 
 ```cmake
 find_package(OpenCV 4.4)
 ```
 
-### 4.4. Limpiar compilaciones anteriores
+### 4.4. Clean previous builds
 
-Antes de recompilar, eliminar las librerías y directorios de compilación anteriores:
+Before recompiling, remove previous libraries and build directories:
 
 ```bash
 cd "$HOME/Escritorio/ORB_SLAM3_fork"
@@ -460,15 +460,15 @@ rm -rf Thirdparty/g2o/build
 rm -rf build
 ```
 
-### 4.5. Compilar DBoW2
+### 4.5. Compile DBoW2
 
-Entrar en DBoW2:
+Enter DBoW2:
 
 ```bash
 cd "$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/DBoW2"
 ```
 
-Limpiar y crear el directorio de compilación:
+Clean and create the build directory:
 
 ```bash
 rm -rf build
@@ -476,27 +476,27 @@ mkdir build
 cd build
 ```
 
-Configurar:
+Configure:
 
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
-Compilar utilizando siempre un solo proceso:
+Compile using a single process:
 
 ```bash
 make -j1
 ```
 
-### 4.6. Compilar g2o
+### 4.6. Compile g2o
 
-Entrar en g2o:
+Enter g2o:
 
 ```bash
 cd "$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/g2o"
 ```
 
-Limpiar y crear el directorio de compilación:
+Clean and create the build directory:
 
 ```bash
 rm -rf build
@@ -504,27 +504,27 @@ mkdir build
 cd build
 ```
 
-Configurar:
+Configure:
 
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
-Compilar utilizando siempre un solo proceso:
+Compile using a single process:
 
 ```bash
 make -j1
 ```
 
-### 4.7. Configurar ORB-SLAM3 fork para utilizar C++14
+### 4.7. Configure the ORB-SLAM3 fork to use C++14
 
-Abrir el `CMakeLists.txt` principal:
+Open the main `CMakeLists.txt`:
 
 ```bash
 gedit "$HOME/Escritorio/ORB_SLAM3_fork/CMakeLists.txt"
 ```
 
-La configuración del estándar C++ debe utilizar C++14:
+The C++ standard configuration must use C++14:
 
 ```cmake
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
@@ -536,19 +536,19 @@ if(COMPILER_SUPPORTS_CXX14)
     message(STATUS "Using flag -std=c++14.")
 ```
 
-Además, eliminar el bloque relacionado con RealSense que comienza en:
+Additionally, remove the RealSense-related block beginning with:
 
 ```cmake
 # If RealSense SDK is found the library is added and its examples compiled
 ```
 
-y continúa hasta el final del archivo.
+and continuing to the end of the file.
 
-Se utiliza el comentario como referencia para localizar el bloque, en lugar de depender de un número de línea concreto.
+The comment is used as a reference to locate the block rather than relying on a specific line number.
 
-### 4.8. Compilar ORB-SLAM3 fork
+### 4.8. Compile the ORB-SLAM3 fork
 
-Limpiar la compilación:
+Clean the build:
 
 ```bash
 cd "$HOME/Escritorio/ORB_SLAM3_fork"
@@ -558,46 +558,46 @@ mkdir build
 cd build
 ```
 
-Configurar:
+Configure:
 
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
-Compilar utilizando siempre un solo proceso:
+Compile using a single process:
 
 ```bash
 make -j1
 ```
 
-La compilación debe finalizar correctamente y generar las librerías de ORB-SLAM3.
+The compilation must finish successfully and generate the ORB-SLAM3 libraries.
 
-# 5. PREPARAR WORKSPACE ROS1
+# 5. PREPARE ROS1 WORKSPACE
 
-Crear el workspace:
+Create the workspace:
 
 ```bash
 mkdir -p "$HOME/ros1_ws/src"
 ```
 
-Cargar ROS:
+Load ROS:
 
 ```bash
 source /opt/ros/noetic/setup.bash
 ```
 
-Inicializar el workspace:
+Initialize the workspace:
 
 ```bash
 cd "$HOME/ros1_ws/src"
 catkin_init_workspace
 ```
 
-El workspace debe contener inicialmente solamente el `CMakeLists.txt` generado por `catkin`.
+Initially, the workspace should contain only the `CMakeLists.txt` generated by `catkin`.
 
-# 6. INSTALAR ORB_SLAM3_ROS_WRAPPER
+# 6. INSTALL ORB_SLAM3_ROS_WRAPPER
 
-## 6.1. Descargar el repositorio
+## 6.1. Download the repository
 
 ```bash
 cd "$HOME/ros1_ws/src"
@@ -605,15 +605,15 @@ cd "$HOME/ros1_ws/src"
 git clone https://github.com/thien94/orb_slam3_ros_wrapper.git
 ```
 
-## 6.2. Editar la ruta de ORB-SLAM3
+## 6.2. Edit the ORB-SLAM3 path
 
-Abrir:
+Open:
 
 ```bash
 gedit "$HOME/ros1_ws/src/orb_slam3_ros_wrapper/CMakeLists.txt"
 ```
 
-Cambiar únicamente:
+Change only:
 
 ```cmake
 set(ORB_SLAM3_DIR
@@ -621,7 +621,7 @@ set(ORB_SLAM3_DIR
 )
 ```
 
-por:
+to:
 
 ```cmake
 set(ORB_SLAM3_DIR
@@ -629,7 +629,7 @@ set(ORB_SLAM3_DIR
 )
 ```
 
-## 6.3. Instalar dependencias ROS del wrapper
+## 6.3. Install ROS dependencies for the wrapper
 
 ```bash
 sudo apt update
@@ -645,9 +645,9 @@ sudo apt install -y \
   ros-noetic-rospy
 ```
 
-## 6.4. Preparar el vocabulario
+## 6.4. Prepare the vocabulary
 
-Descomprimir el vocabulario de ORB-SLAM3:
+Extract the ORB-SLAM3 vocabulary:
 
 ```bash
 cd "$HOME/Escritorio/ORB_SLAM3_fork/Vocabulary"
@@ -655,16 +655,16 @@ cd "$HOME/Escritorio/ORB_SLAM3_fork/Vocabulary"
 tar -xf ORBvoc.txt.tar.gz
 ```
 
-Copiarlo al wrapper:
+Copy it to the wrapper:
 
 ```bash
 cp ORBvoc.txt \
 "$HOME/ros1_ws/src/orb_slam3_ros_wrapper/config/ORBvoc.txt"
 ```
 
-## 6.5. Compilar el wrapper
+## 6.5. Compile the wrapper
 
-Limpiar la compilación anterior:
+Clean the previous build:
 
 ```bash
 cd "$HOME/ros1_ws"
@@ -672,28 +672,28 @@ cd "$HOME/ros1_ws"
 rm -rf build devel
 ```
 
-Cargar ROS:
+Load ROS:
 
 ```bash
 source /opt/ros/noetic/setup.bash
 ```
 
-Compilar siempre con un solo proceso:
+Always compile using a single process:
 
 ```bash
 catkin_make -j1 \
 -DOpenCV_DIR=/usr/local/lib/cmake/opencv4
 ```
 
-Cargar el workspace:
+Load the workspace:
 
 ```bash
 source "$HOME/ros1_ws/devel/setup.bash"
 ```
 
-# 7. INSTALAR jpeg_to_mono
+# 7. INSTALL jpeg_to_mono
 
-Copiar el paquete desde el repositorio de **OrbVIsense Navigator**:
+Copy the package from the **OrbVIsense Navigator** repository:
 
 ```bash
 cd "$HOME/ros1_ws/src"
@@ -701,19 +701,19 @@ cd "$HOME/ros1_ws/src"
 cp -r "$HOME/Escritorio/OrbVisense-Navigator/jpeg_to_mono/jpeg_to_mono" .
 ```
 
-Comprobar:
+Check:
 
 ```bash
 ls -lah "$HOME/ros1_ws/src/jpeg_to_mono"
 ```
 
-Debe quedar ubicado en:
+It must be located at:
 
 ```text
 $HOME/ros1_ws/src/jpeg_to_mono
 ```
 
-Compilar:
+Compile:
 
 ```bash
 cd "$HOME/ros1_ws"
@@ -724,9 +724,9 @@ catkin_make -j1 \
 -DOpenCV_DIR=/usr/local/lib/cmake/opencv4
 ```
 
-# 8. INSTALAR rosbridge_suite
+# 8. INSTALL rosbridge_suite
 
-Descargar `rosbridge_suite`:
+Download `rosbridge_suite`:
 
 ```bash
 cd "$HOME/ros1_ws/src"
@@ -735,7 +735,7 @@ git clone --branch ros1 --depth 1 \
 https://github.com/RobotWebTools/rosbridge_suite.git
 ```
 
-Instalar la dependencia necesaria:
+Install the required dependency:
 
 ```bash
 sudo apt update
@@ -743,7 +743,7 @@ sudo apt update
 sudo apt install -y ros-noetic-rosauth
 ```
 
-Compilar:
+Compile:
 
 ```bash
 cd "$HOME/ros1_ws"
@@ -753,92 +753,92 @@ source /opt/ros/noetic/setup.bash
 catkin_make -j1
 ```
 
-# 9. CARGAR EL WORKSPACE
+# 9. LOAD THE WORKSPACE
 
-Cargar ROS:
+Load ROS:
 
 ```bash
 source /opt/ros/noetic/setup.bash
 ```
 
-Cargar el workspace:
+Load the workspace:
 
 ```bash
 source "$HOME/ros1_ws/devel/setup.bash"
 ```
 
-# 10. COMPROBAR LOS PAQUETES ROS
+# 10. CHECK ROS PACKAGES
 
-Cargar los entornos:
+Load the environments:
 
 ```bash
 source /opt/ros/noetic/setup.bash
 source "$HOME/ros1_ws/devel/setup.bash"
 ```
 
-Comprobar `orb_slam3_ros_wrapper`:
+Check `orb_slam3_ros_wrapper`:
 
 ```bash
 rospack find orb_slam3_ros_wrapper
 ```
 
-Debe devolver:
+It should return:
 
 ```text
 $HOME/ros1_ws/src/orb_slam3_ros_wrapper
 ```
 
-Comprobar `jpeg_to_mono`:
+Check `jpeg_to_mono`:
 
 ```bash
 rospack find jpeg_to_mono
 ```
 
-Debe devolver:
+It should return:
 
 ```text
 $HOME/ros1_ws/src/jpeg_to_mono
 ```
 
-Comprobar `rosbridge_server`:
+Check `rosbridge_server`:
 
 ```bash
 rospack find rosbridge_server
 ```
 
-Debe devolver:
+It should return:
 
 ```text
 $HOME/ros1_ws/src/rosbridge_suite/rosbridge_server
 ```
 
-# 11. VERIFICACIÓN DE INSTALACIONES
+# 11. INSTALLATION VERIFICATION
 
-Comprobar que existe la biblioteca de ORB-SLAM3:
+Check that the ORB-SLAM3 library exists:
 
 ```bash
 ls -lh "$HOME/Escritorio/ORB_SLAM3_fork/lib/libORB_SLAM3.so"
 ```
 
-Comprobar el ejecutable del wrapper:
+Check the wrapper executable:
 
 ```bash
 ls -lh "$HOME/ros1_ws/devel/lib/orb_slam3_ros_wrapper/orb_slam3_ros_wrapper_mono_inertial"
 ```
 
-Comprobar que el wrapper utiliza la biblioteca del fork:
+Check that the wrapper uses the fork library:
 
 ```bash
 ldd "$HOME/ros1_ws/devel/lib/orb_slam3_ros_wrapper/orb_slam3_ros_wrapper_mono_inertial" | grep ORB_SLAM3
 ```
 
-Debe apuntar a:
+It should point to:
 
 ```text
 $HOME/Escritorio/ORB_SLAM3_fork/lib/libORB_SLAM3.so
 ```
 
-Comprobar todos los paquetes:
+Check all packages:
 
 ```bash
 rospack find orb_slam3_ros_wrapper
@@ -847,7 +847,7 @@ rospack find rosbridge_server
 rospack find robot_pwm
 ```
 
-Comprobar el nuevo mensaje ROS:
+Check the new ROS message:
 
 ```bash
 source /opt/ros/noetic/setup.bash
@@ -856,52 +856,52 @@ source "$HOME/ros1_ws/devel/setup.bash"
 rosmsg show robot_pwm/PWM
 ```
 
-Debe mostrar:
+It should show:
 
 ```text
 int16 left
 int16 right
 ```
 
-También se puede comprobar que el mensaje aparece en ROS:
+You can also check that the message appears in ROS:
 
 ```bash
 rosmsg list | grep robot_pwm
 ```
 
-Debe aparecer:
+It should show:
 
 ```text
 robot_pwm/PWM
 ```
 
-Comprobar los nodos:
+Check the nodes:
 
 ```bash
 rosnode list
 ```
 
-Comprobar los topics:
+Check the topics:
 
 ```bash
 rostopic list
 ```
 
-El topic utilizado por el editor para enviar el movimiento del robot es:
+The topic used by the editor to send robot movement commands is:
 
 ```text
 /robot/pwm
 ```
 
-# 12. TOPICS PRINCIPALES
+# 12. MAIN TOPICS
 
-### Imagen comprimida
+### Compressed image
 
 ```text
 /cam0/image_raw/compressed
 ```
 
-### Imagen convertida
+### Converted image
 
 ```text
 /cam0/image_raw
@@ -913,63 +913,63 @@ El topic utilizado por el editor para enviar el movimiento del robot es:
 /imu0
 ```
 
-### Pose de cámara
+### Camera pose
 
 ```text
 /orb_slam3/camera_pose
 ```
 
-### Mapa
+### Map
 
 ```text
 /orb_slam3/map_points
 ```
 
-El mapa utiliza el tipo:
+The map uses the type:
 
 ```text
 sensor_msgs/PointCloud2
 ```
 
-El frame utilizado por ORB-SLAM3 es:
+The frame used by ORB-SLAM3 is:
 
 ```text
 world
 ```
 
-# 13. COMPROBAR TOPICS
+# 13. CHECK TOPICS
 
-Lista completa:
+Complete list:
 
 ```bash
 rostopic list
 ```
 
-Comprobar frecuencia de la imagen:
+Check image frequency:
 
 ```bash
 rostopic hz /cam0/image_raw
 ```
 
-Comprobar frecuencia del IMU:
+Check IMU frequency:
 
 ```bash
 rostopic hz /imu0
 ```
 
-Comprobar la pose:
+Check the pose:
 
 ```bash
 rostopic echo /orb_slam3/camera_pose
 ```
 
-Comprobar el mapa:
+Check the map:
 
 ```bash
 rostopic echo /orb_slam3/map_points
 ```
 
-# 14. VENTANAS DE EJECUCIÓN
+# 14. EXECUTION TERMINALS
 
 ## Terminal 1 — ROSCORE
 
@@ -979,7 +979,7 @@ source "$HOME/ros1_ws/devel/setup.bash"
 roscore
 ```
 
-Esta terminal mantiene activo el núcleo de ROS.
+This terminal keeps the ROS core active.
 
 ## Terminal 2 — ROSBRIDGE
 
@@ -989,7 +989,7 @@ source "$HOME/ros1_ws/devel/setup.bash"
 roslaunch rosbridge_server rosbridge_websocket.launch
 ```
 
-Esto permite la comunicación mediante WebSocket.
+This enables communication through WebSocket.
 
 ## Terminal 3 — jpeg_to_mono
 
@@ -999,13 +999,13 @@ source "$HOME/ros1_ws/devel/setup.bash"
 rosrun jpeg_to_mono jpeg_to_mono_node
 ```
 
-Su función es convertir:
+Its function is to convert:
 
 ```text
 /cam0/image_raw/compressed
 ```
 
-en:
+into:
 
 ```text
 /cam0/image_raw
@@ -1019,9 +1019,9 @@ source "$HOME/ros1_ws/devel/setup.bash"
 roslaunch orb_slam3_ros_wrapper euroc_monoimu.launch
 ```
 
-El sistema utiliza:
+The system uses:
 
-Imagen:
+Image:
 
 ```text
 /cam0/image_raw
@@ -1033,57 +1033,57 @@ IMU:
 /imu0
 ```
 
-# 15. DISTRIBUCIÓN DE ARCHIVOS CLAVE
+# 15. KEY FILE LOCATIONS
 
-## Ubicación de archivos de configuración y mapas
+## Configuration files and map locations
 
-### Archivo YAML de configuración
+### YAML configuration file
 
-Los archivos `.yaml` utilizados por el wrapper se encuentran en:
+The `.yaml` files used by the wrapper are located in:
 
 ```text
 ~/ros1_ws/src/orb_slam3_ros_wrapper/config/
 ```
 
-Ahí se puede editar o reemplazar el YAML correspondiente a la configuración de la cámara y el IMU.
+The corresponding YAML file for the camera and IMU configuration can be edited or replaced there.
 
-Para editar uno:
+To edit one:
 
 ```bash
 gedit "$HOME/ros1_ws/src/orb_slam3_ros_wrapper/config/NOMBRE_CONFIGURACION.yaml"
 ```
 
-### Archivos de mapas `.osa`
+### `.osa` map files
 
-Los mapas guardados por ORB-SLAM3 se almacenan normalmente en:
+Maps saved by ORB-SLAM3 are normally stored in:
 
 ```text
 ~/.ros/
 ```
 
-Para localizar los mapas:
+To locate the maps:
 
 ```bash
 find ~/.ros -maxdepth 1 -type f -name "*.osa"
 ```
 
-La carpeta `~/.ros` pertenece al usuario, no al workspace.
+The `~/.ros` directory belongs to the user, not to the workspace.
 
-Por eso, los mapas `.osa` **no se eliminan al borrar o reconstruir `~/ros1_ws`**.
+Therefore, `.osa` maps **are not deleted when `~/ros1_ws` is deleted or rebuilt**.
 
-En resumen:
+In summary:
 
 ```text
 ~/ros1_ws/src/orb_slam3_ros_wrapper/config/
-└── Archivos YAML de configuración
+└── YAML configuration files
 
 ~/.ros/
-└── Archivos .osa de mapas/Atlas
+└── .osa map/Atlas files
 ```
 
-**Regla práctica:** los `.yaml` se modifican dentro del `config` del wrapper; los `.osa` se buscan y administran dentro de `~/.ros`.
+**Practical rule:** `.yaml` files are modified inside the wrapper's `config` directory; `.osa` files are searched for and managed inside `~/.ros`.
 
-# 16. RESUMEN DEL SISTEMA ADAPTADO
+# 16. ADAPTED SYSTEM SUMMARY
 
 ### ORB-SLAM3 fork
 
@@ -1114,11 +1114,12 @@ $HOME/ros1_ws/src/jpeg_to_mono
 ```text
 $HOME/ros1_ws/src/rosbridge_suite
 ```
-# 17. INSTALACIÓN DEL ORBVISENSE NAVIGATOR
 
-## 17.1. Instalación del mensaje ROS `robot_pwm`
+# 17. INSTALLING ORBVISENSE NAVIGATOR
 
-Copiar el paquete desde el repositorio de OrbVIsense Navigator:
+## 17.1. Installing the ROS `robot_pwm` message
+
+Copy the package from the OrbVIsense Navigator repository:
 
 ```bash
 cd "$HOME/ros1_ws/src"
@@ -1126,7 +1127,7 @@ cd "$HOME/ros1_ws/src"
 cp -r "$HOME/Escritorio/OrbVisense-Navigator/robot_pwm/robot_pwm" .
 ```
 
-Compilar:
+Compile:
 
 ```bash
 cd "$HOME/ros1_ws"
@@ -1136,47 +1137,47 @@ source /opt/ros/noetic/setup.bash
 catkin_make -j1
 ```
 
-Cargar el workspace:
+Load the workspace:
 
 ```bash
 source "$HOME/ros1_ws/devel/setup.bash"
 ```
 
-Verificar el paquete:
+Verify the package:
 
 ```bash
 rospack find robot_pwm
 ```
 
-Debe devolver:
+It should return:
 
 ```text
 $HOME/ros1_ws/src/robot_pwm
 ```
 
-Verificar el contenido del mensaje:
+Verify the message contents:
 
 ```bash
 rosmsg show robot_pwm/PWM
 ```
 
-Debe mostrar:
+It should show:
 
 ```text
 int16 left
 int16 right
 ```
 
-## 17.2. Instalación de OrbVIsense Navigator
+## 17.2. Installing OrbVIsense Navigator
 
-Copiar el programa desde el repositorio:
+Copy the program from the repository:
 
 ```bash
 cp -r "$HOME/Escritorio/OrbVisense-Navigator/orbvisense_navigator" \
       "$HOME/Escritorio/"
 ```
 
-Compilar:
+Compile:
 
 ```bash
 cd "$HOME/Escritorio/orbvisense_navigator"
@@ -1193,32 +1194,32 @@ cmake -S "$HOME/Escritorio/orbvisense_navigator" \
 cmake --build "$HOME/Escritorio/orbvisense_navigator/build" -j1
 ```
 
-Antes de ejecutar el programa, cargar ROS y el workspace:
+Before running the program, load ROS and the workspace:
 
 ```bash
 source /opt/ros/noetic/setup.bash
 source "$HOME/ros1_ws/devel/setup.bash"
 ```
 
-Definir la ubicación de ORB-SLAM3:
+Define the ORB-SLAM3 location:
 
 ```bash
 export ORB_SLAM3_ROOT="$HOME/Escritorio/ORB_SLAM3_fork"
 ```
 
-Configurar las bibliotecas necesarias:
+Configure the required libraries:
 
 ```bash
 export LD_LIBRARY_PATH="$HOME/Escritorio/ORB_SLAM3_fork/lib:$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/DBoW2/lib:$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/g2o/lib:/usr/local/lib:/opt/ros/noetic/lib:${LD_LIBRARY_PATH:-}"
 ```
 
-El comando para iniciar OrbVIsense Navigator es:
+The command to start OrbVIsense Navigator is:
 
 ```bash
 "$HOME/Escritorio/orbvisense_navigator/build/orbvisense_navigator"
 ```
 
-## 17.3. Comandos de ejecución
+## 17.3. Execution commands
 
 ### Terminal 1 — ROSCORE
 
@@ -1242,43 +1243,43 @@ export LD_LIBRARY_PATH="$HOME/Escritorio/ORB_SLAM3_fork/lib:$HOME/Escritorio/ORB
 "$HOME/Escritorio/orbvisense_navigator/build/orbvisense_navigator"
 ```
 
-# 18. EDICIONES PERMITIDAS
+# 18. ALLOWED EDITS
 
-## 18.1. Modificación del tamaño del robot
+## 18.1. Modifying the robot size
 
-Para modificar el **tamaño del robot**, editar:
+To modify the **robot size**, edit:
 
 ```bash
 gedit "$HOME/Escritorio/orbvisense_navigator/NavigationWidget.h"
 ```
 
-Buscar:
+Find:
 
 ```cpp
 static constexpr float mRobotScale = 0.10f;
 ```
 
-Modificar el valor según el tamaño deseado.
+Modify the value according to the desired size.
 
-## 18.2. Modificación de la IP de transmisión del mensaje PWM
+## 18.2. Modifying the PWM message transmission IP
 
-Para cambiar la IP del WebSocket donde se publica el mensaje PWM, editar:
+To change the WebSocket IP address where the PWM message is published, edit:
 
 ```bash
 gedit "$HOME/Escritorio/orbvisense_navigator/MainWindow.cpp"
 ```
 
-Buscar:
+Find:
 
 ```cpp
 << "ws://10.42.0.1:9090";
 ```
 
-Modificar la dirección IP según la configuración de la red.
+Modify the IP address according to the network configuration.
 
-## 18.3. Recompilación
+## 18.3. Recompilation
 
-Después de cualquier modificación del código:
+After any code modification:
 
 ```bash
 cd "$HOME/Escritorio/orbvisense_navigator"
@@ -1286,68 +1287,62 @@ cd "$HOME/Escritorio/orbvisense_navigator"
 cmake --build "$HOME/Escritorio/orbvisense_navigator/build" -j1
 ```
 
-Después de recompilar, volver a ejecutar:
+After recompiling, run again:
 
 ```bash
 "$HOME/Escritorio/orbvisense_navigator/build/orbvisense_navigator"
 ```
 
-# 19. FUNCIONAMIENTO GENERAL DE ORBVISENSE NAVIGATOR
+# 19. GENERAL OPERATION OF ORBVISENSE NAVIGATOR
 
-## 19.1. Requerimientos
+## 19.1. Requirements
 
-Para utilizar completamente **OrbVIsense Navigator** se requieren los siguientes elementos.
+To fully use **OrbVIsense Navigator**, the following elements are required.
 
-### 1. Teléfono Android
+### 1. Android phone
 
-Se requiere un teléfono Android con la aplicación **OrbVIsense** instalada.
+An Android phone with the **OrbVIsense** application installed is required.
 
-La aplicación se encuentra en el repositorio:
+The application is available in the **HeyItsLuan/OrbVIsense** GitHub repository.
 
-[HeyItsLuan/OrbVIsense — GitHub](https://github.com/HeyItsLuan/OrbVIsense?utm_source=chatgpt.com)
+### 2. Phone calibration
 
-### 2. Calibración del teléfono
+The phone must be calibrated beforehand.
 
-El teléfono debe estar previamente calibrado.
+The application itself can generate the datasets required to perform the calibration.
 
-La propia aplicación permite generar los datasets necesarios para realizar la calibración.
+The calibration procedure is available in the **HeyItsLuan/OrbVIsense-calibration** GitHub repository.
 
-El procedimiento de calibración se encuentra en:
+Calibration must be performed before using the phone to obtain reliable results with ORB-SLAM3.
 
-[HeyItsLuan/OrbVIsense-calibration — GitHub](https://github.com/HeyItsLuan/OrbVIsense-calibration?utm_source=chatgpt.com)
+### 3. Network connection
 
-La calibración debe realizarse antes de utilizar el teléfono para obtener resultados confiables con ORB-SLAM3.
+The Android phone and the computer must be connected to the **same network**.
 
-### 3. Conexión de red
+The computer's IP address must be known because the computer acts as the **server** for communication between the phone and ROS.
 
-El teléfono Android y el computador deben estar conectados a la **misma red**.
+### 4. Robot and WebSocket communication
 
-Se debe conocer la dirección IP del computador, ya que el computador funciona como **servidor** dentro de la comunicación entre el teléfono y ROS.
+The robot must have the computer's IP address configured in its code.
 
-### 4. Robot y comunicación WebSocket
+The robot code is available in the **HeyItsLuan/OrbVIsense-robot** GitHub repository.
 
-El robot debe tener configurada en su código la dirección IP del computador.
+The IP configured in the robot code must correspond to the IP address of the computer acting as the server.
 
-El código del robot se encuentra en:
+Additionally, the ESP32 must be in WebSocket communication mode.
 
-[HeyItsLuan/OrbVIsense-robot — GitHub](https://github.com/HeyItsLuan/OrbVIsense-robot?utm_source=chatgpt.com)
+To activate this mode, press the **BOOT** button on the ESP32.
 
-La IP configurada en el código del robot debe corresponder con la IP del computador que funciona como servidor.
+## 19.2. Using ORB-SLAM3 independently
 
-Además, la ESP32 debe encontrarse en modo de comunicación mediante WebSocket.
-
-Para activar este modo se debe presionar el botón **BOOT** de la ESP32.
-
-## 19.2. Uso de ORB-SLAM3 de forma independiente
-
-Una vez completados los pasos anteriores, es posible utilizar el **ORB-SLAM3 fork** con el teléfono Android siguiendo la arquitectura:
+Once the previous steps have been completed, the **ORB-SLAM3 fork** can be used with the Android phone following this architecture:
 
 ```text
-Teléfono Android
+Android Phone
        │
        │ WebSocket
        ▼
-   Computador
+   Computer
        │
        ▼
       ROS1
@@ -1356,253 +1351,259 @@ Teléfono Android
    ORB-SLAM3
 ```
 
-El sistema puede utilizarse de manera independiente hasta el **paso 14** de esta guía.
+The system can be used independently through **step 14** of this guide.
 
-En este punto es posible ejecutar ORB-SLAM3, recibir la cámara y el IMU del teléfono y generar mapas sin utilizar OrbVIsense Navigator.
+At this point, ORB-SLAM3 can be executed, the camera and IMU data from the phone can be received, and maps can be generated without using OrbVIsense Navigator.
 
-## 19.3. Generación de mapas para navegación
+## 19.3. Generating maps for navigation
 
-Si además de utilizar ORB-SLAM3 se desea realizar **navegación autónoma**, se debe continuar con la instalación hasta OrbVIsense Navigator.
+If, in addition to using ORB-SLAM3, **autonomous navigation** is required, continue with the installation through OrbVIsense Navigator.
 
-Para navegar es necesario disponer previamente de un mapa.
+A map must already be available in order to navigate.
 
-Los mapas pueden generarse utilizando ORB-SLAM3 desde el paso 14 de esta guía o utilizando el sistema junto con OrbVIsense Navigator.
+Maps can be generated using ORB-SLAM3 from step 14 of this guide or by using the system together with OrbVIsense Navigator.
 
-Para generar diferentes mapas o modificar la configuración utilizada por ORB-SLAM3, se puede modificar el archivo:
+To generate different maps or modify the configuration used by ORB-SLAM3, the following file can be modified:
 
 ```text
 $HOME/ros1_ws/src/orb_slam3_ros_wrapper/config/euroc.yaml
 ```
 
-Los mapas generados por ORB-SLAM3 deben guardarse en formato:
+Maps generated by ORB-SLAM3 must be saved in:
 
 ```text
 .osa
 ```
 
-Estos archivos corresponden a los Atlas guardados por ORB-SLAM3 y son los que posteriormente puede cargar OrbVIsense Navigator.
+format.
 
-# 19.4. Flujo de navegación en OrbVIsense Navigator
+These files correspond to the Atlas files saved by ORB-SLAM3 and are the files that OrbVIsense Navigator can subsequently load.
 
-Una vez generado un mapa `.osa`, se puede utilizar OrbVIsense Navigator para realizar la navegación.
+# 19.4. Navigation workflow in OrbVIsense Navigator
 
-### Paso 1. Cargar el mapa
+Once a `.osa` map has been generated, OrbVIsense Navigator can be used for navigation.
 
-En OrbVIsense Navigator se debe utilizar el botón **Load**.
+### Step 1. Load the map
 
-Se selecciona el mapa `.osa` que se desea utilizar.
+In OrbVIsense Navigator, use the **Load** button.
 
-Después de seleccionar el archivo se debe esperar unos segundos mientras el mapa es cargado.
+Select the `.osa` map that you want to use.
 
-### Paso 2. Activar la navegación
+After selecting the file, wait a few seconds while the map is loaded.
 
-Una vez cargado el mapa estará disponible la opción **Navigation**.
+### Step 2. Enable navigation
 
-Se debe presionar el botón para acceder a las herramientas de navegación.
+Once the map has been loaded, the **Navigation** option becomes available.
 
-### Paso 3. Configurar la IP del robot
+Press the button to access the navigation tools.
 
-Antes de comenzar la navegación se debe comprobar la configuración descrita en el apartado **18.2**.
+### Step 3. Configure the robot IP
 
-La dirección IP utilizada para publicar el mensaje PWM debe corresponder con la dirección del computador que funciona como servidor WebSocket.
+Before starting navigation, verify the configuration described in section **18.2**.
 
-## 19.5. Calibración de la representación del robot sobre el mapa
+The IP address used to publish the PWM message must correspond to the address of the computer acting as the WebSocket server.
 
-Al cargar un mapa, OrbVIsense Navigator representa inicialmente el robot en la coordenada:
+## 19.5. Calibrating the robot representation on the map
+
+When a map is loaded, OrbVIsense Navigator initially represents the robot at:
 
 ```text
 X = 0.0
 Y = 0.0
 ```
 
-La representación inicial del tamaño del robot puede no corresponder exactamente con sus dimensiones reales.
+The initial representation of the robot size may not exactly correspond to its real dimensions.
 
-Por esta razón se plantea una calibración utilizando mediciones realizadas físicamente.
+For this reason, a calibration procedure based on physical measurements is used.
 
-### Datos necesarios
+### Required data
 
-Para realizar esta calibración se necesitan:
+The following are required for this calibration:
 
-* Una medida métrica real.
-* La distancia entre dos posiciones conocidas.
-* La longitud real del robot.
-* Las coordenadas de dos poses válidas obtenidas mediante ORB-SLAM3.
+* A real-world metric measurement.
+* The distance between two known positions.
+* The actual length of the robot.
+* The coordinates of two valid poses obtained through ORB-SLAM3.
 
-### Obtener las dos poses
+### Obtaining the two poses
 
-Primero se debe activar ORB-SLAM3 mediante el botón:
+First, enable ORB-SLAM3 using the:
 
 **Enable ORB-SLAM3**
 
-Una vez iniciado ORB-SLAM3, se debe seleccionar el modo:
+button.
+
+Once ORB-SLAM3 has started, select:
 
 **Localization**
 
-Después se mueve físicamente el robot sobre el mapa.
+Then physically move the robot across the map.
 
-ORB-SLAM3 proporcionará la pose estimada del robot.
+ORB-SLAM3 will provide the estimated robot pose.
 
-Para visualizar esta pose dentro de OrbVIsense Navigator se debe activar:
+To display this pose inside OrbVIsense Navigator, enable:
 
 **Enable Reception**
 
-Esto permite recibir el topic de pose publicado por ORB-SLAM3 y dibujar la posición del robot sobre el mapa.
+This allows the navigator to receive the pose topic published by ORB-SLAM3 and draw the robot position on the map.
 
-Se deben seleccionar dos posiciones físicamente diferentes del robot que produzcan una **pose válida**.
+Two physically different robot positions that produce a **valid pose** must be selected.
 
-Una pose se considera válida cuando sus coordenadas no corresponden a:
+A pose is considered valid when its coordinates are not:
 
 ```text
 X = 0.0
 Y = 0.0
 ```
 
-Las dos posiciones deben registrarse y medirse físicamente.
+The two positions must be recorded and physically measured.
 
-### Cálculo de la escala del robot
+### Calculating the robot scale
 
-Se tendrán entonces:
+The following values will then be available:
 
-* Distancia métrica real entre las dos posiciones.
-* Distancia entre las dos posiciones en coordenadas del mapa.
-* Longitud real del robot.
+* Real metric distance between the two positions.
+* Distance between the two positions in map coordinates.
+* Actual length of the robot.
 
-La distancia entre las dos poses del mapa se calcula a partir de sus coordenadas.
+The distance between the two map poses is calculated from their coordinates.
 
-Después se obtiene el valor representativo del robot en puntos mediante:
+The representative robot size in points is then obtained using:
 
 ```text
-Representación del robot =
-(Longitud real del robot × distancia entre las dos poses en coordenadas)
+Robot representation =
+(Actual robot length × distance between the two poses in coordinates)
 /
-Distancia métrica real entre las dos poses
+Real metric distance between the two poses
 ```
 
-De esta manera se obtiene el tamaño que debe utilizar el programa para representar el robot correctamente dentro del mapa.
+This produces the size that the program must use to correctly represent the robot within the map.
 
-El valor calculado puede utilizarse para modificar el parámetro correspondiente descrito en el apartado **18.1**.
+The calculated value can be used to modify the corresponding parameter described in section **18.1**.
 
-## 19.6. Herramientas de edición del mapa
+## 19.6. Map editing tools
 
-Después de cargar un mapa, OrbVIsense Navigator proporciona herramientas para preparar el mapa antes de calcular una ruta.
+After loading a map, OrbVIsense Navigator provides tools to prepare the map before calculating a route.
 
 ### Select Contour
 
-El botón **Select Contour** permite seleccionar una región del mapa.
+The **Select Contour** button allows a region of the map to be selected.
 
-Después de activar esta herramienta se puede hacer clic sobre el mapa para seleccionar un contorno interno.
+After activating this tool, click on the map to select an internal contour.
 
-El contorno seleccionado permite definir una región que será utilizada posteriormente durante el cálculo de la ruta.
+The selected contour can be used to define a region that will later be considered during route calculation.
 
-También se muestran las coordenadas correspondientes al punto seleccionado.
+The coordinates corresponding to the selected point are also displayed.
 
 ### Delete Selected
 
-El botón **Delete Selected** permite eliminar puntos del mapa.
+The **Delete Selected** button allows points to be removed from the map.
 
-Esta herramienta es útil cuando existen:
+This tool is useful when there are:
 
-* Puntos falsos.
-* Puntos aislados.
-* Puntos que generan contactos inexistentes.
-* Puntos que impiden definir correctamente un contorno interno.
+* False points.
+* Isolated points.
+* Points that generate nonexistent contacts.
+* Points that prevent an internal contour from being correctly defined.
 
-Los puntos pueden seleccionarse mediante clic izquierdo.
+Points can be selected using the left mouse button.
 
-También es posible mantener presionado el clic izquierdo para seleccionar una región de puntos.
+It is also possible to hold the left mouse button to select a region of points.
 
-### Eliminación de puntos extremos en Z
+### Removing extreme Z points
 
-El mapa utilizado para la navegación corresponde principalmente al plano:
+The map used for navigation primarily corresponds to the:
 
 ```text
 X-Y
 ```
 
-Por lo tanto, la coordenada `Z`, que representa la altura, no es necesaria para la navegación bidimensional.
+plane.
 
-Sin embargo, pueden existir puntos con valores de `Z` extremos que aparezcan como obstáculos o contactos falsos al proyectarse sobre el mapa.
+Therefore, the `Z` coordinate, which represents height, is not required for two-dimensional navigation.
 
-OrbVIsense Navigator permite eliminar estos puntos mediante los controles correspondientes.
+However, points with extreme `Z` values may appear as obstacles or false contacts when projected onto the map.
 
-Al utilizar las flechas se eliminan progresivamente los valores situados a la derecha o a la izquierda de los límites establecidos.
+OrbVIsense Navigator allows these points to be removed using the corresponding controls.
 
-Esto permite reducir los puntos extremos de la coordenada `Z` y conservar únicamente la información relevante para la navegación en el plano `X-Y`.
+Using the arrows progressively removes the values located to the right or left of the established limits.
 
-## 19.7. Activación completa del sistema
+This makes it possible to reduce extreme values of the `Z` coordinate while keeping only the information relevant to navigation in the `X-Y` plane.
 
-El botón:
+## 19.7. Full system activation
+
+The:
 
 **Enable ORB-SLAM3**
 
-permite iniciar simultáneamente los componentes necesarios para utilizar el sistema:
+button allows the components required by the system to be started simultaneously:
 
 * WebSocket.
 * `jpeg_to_mono`.
 * ORB-SLAM3 fork.
 
-Una vez activado, se habilita en el panel izquierdo la sección de herramientas de navegación.
+Once enabled, the navigation tools section becomes available in the left panel.
 
 ### Enable Reception
 
-El botón **Enable Reception** permite recibir desde ORB-SLAM3 el topic correspondiente a la pose del robot.
+The **Enable Reception** button allows the robot pose topic from ORB-SLAM3 to be received.
 
-El panel muestra información sobre:
+The panel displays information about:
 
-* Estado de la recepción.
-* Posición del robot.
-* Orientación del robot.
+* Reception status.
+* Robot position.
+* Robot orientation.
 
-La pose recibida se representa directamente sobre el mapa cargado.
+The received pose is represented directly on the loaded map.
 
-## 19.8. Selección del punto B
+## 19.8. Selecting point B
 
-El botón para marcar el **punto B** permite seleccionar sobre el mapa el lugar al que se desea desplazar el robot.
+The tool for marking **point B** allows the user to select the location where the robot should travel on the map.
 
-Después de activar esta herramienta, se debe hacer clic sobre la posición de destino dentro del mapa.
+After activating this tool, click on the desired destination within the map.
 
-Una vez seleccionado el punto B, OrbVIsense Navigator muestra sus coordenadas en pantalla.
+Once point B has been selected, OrbVIsense Navigator displays its coordinates on screen.
 
-## 19.9. Cálculo de la ruta
+## 19.9. Route calculation
 
-Con el robot localizado y el punto B seleccionado se utiliza:
+With the robot localized and point B selected, use:
 
 **Calculate Route**
 
-El programa calcula una ruta utilizando:
+The program calculates a route using:
 
-* Los límites del mapa.
-* La posición actual del robot.
-* El tamaño del robot.
-* El punto B seleccionado.
-* Las regiones disponibles para desplazamiento.
+* The map boundaries.
+* The current robot position.
+* The robot size.
+* The selected point B.
+* The regions available for movement.
 
-Si existe una ruta válida, esta se dibuja sobre el mapa.
+If a valid route exists, it is drawn on the map.
 
-Si no existe una ruta posible, el programa informa que el destino no puede alcanzarse desde la posición actual.
+If no valid route exists, the program reports that the destination cannot be reached from the current position.
 
-## 19.10. Inicio de la navegación
+## 19.10. Starting navigation
 
-Cuando existe una ruta válida se debe presionar:
+When a valid route exists, press:
 
 **Start Route**
 
-El robot comenzará a desplazarse desde su posición actual hacia el punto B siguiendo la ruta calculada.
+The robot will begin moving from its current position toward point B by following the calculated route.
 
-Durante el desplazamiento, el sistema utiliza la pose proporcionada por ORB-SLAM3 para determinar la posición y orientación actual del robot.
+During movement, the system uses the pose provided by ORB-SLAM3 to determine the robot's current position and orientation.
 
-## 19.11. Tolerancias y recálculo de ruta
+## 19.11. Tolerances and route recalculation
 
-El robot utiliza tolerancias para determinar:
+The robot uses tolerances to determine:
 
-* Cuándo ha llegado al punto de destino.
-* Cuándo se ha desviado de la ruta calculada.
-* Cuándo debe corregir su trayectoria.
+* When it has reached the destination.
+* When it has deviated from the calculated route.
+* When it needs to correct its trajectory.
 
-Si el robot se desvía de la ruta, el sistema espera aproximadamente **2 segundos** y calcula una nueva ruta desde la posición actual.
+If the robot deviates from the route, the system waits approximately **2 seconds** and calculates a new route from the current position.
 
-Si el robot pierde la pose válida, el sistema intenta recuperar una pose válida mediante el movimiento del robot.
+If the robot loses a valid pose, the system attempts to recover a valid pose by moving the robot.
 
-Una vez recuperada una pose válida, el sistema puede volver a calcular la ruta desde la nueva posición.
+Once a valid pose has been recovered, the system can calculate the route again from the new position.
 
-De esta manera, la navegación puede adaptarse a desviaciones del robot y a cambios en la estimación de la pose.
+In this way, navigation can adapt to robot deviations and changes in pose estimation.

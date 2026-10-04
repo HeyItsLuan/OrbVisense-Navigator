@@ -572,3 +572,545 @@ make -j1
 
 La compilación debe finalizar correctamente y generar las librerías de ORB-SLAM3.
 
+# 5. PREPARAR WORKSPACE ROS1
+
+Crear el workspace:
+
+```bash
+mkdir -p "$HOME/ros1_ws/src"
+```
+
+Cargar ROS:
+
+```bash
+source /opt/ros/noetic/setup.bash
+```
+
+Inicializar el workspace:
+
+```bash
+cd "$HOME/ros1_ws/src"
+catkin_init_workspace
+```
+
+El workspace debe contener inicialmente solamente el `CMakeLists.txt` generado por `catkin`.
+
+# 6. INSTALAR ORB_SLAM3_ROS_WRAPPER
+
+## 6.1. Descargar el repositorio
+
+```bash
+cd "$HOME/ros1_ws/src"
+
+git clone https://github.com/thien94/orb_slam3_ros_wrapper.git
+```
+
+## 6.2. Editar la ruta de ORB-SLAM3
+
+Abrir:
+
+```bash
+gedit "$HOME/ros1_ws/src/orb_slam3_ros_wrapper/CMakeLists.txt"
+```
+
+Cambiar únicamente:
+
+```cmake
+set(ORB_SLAM3_DIR
+   $ENV{HOME}/Packages/ORB_SLAM3
+)
+```
+
+por:
+
+```cmake
+set(ORB_SLAM3_DIR
+   $ENV{HOME}/Escritorio/ORB_SLAM3_fork
+)
+```
+
+## 6.3. Instalar dependencias ROS del wrapper
+
+```bash
+sudo apt update
+
+sudo apt install -y \
+  ros-noetic-cv-bridge \
+  ros-noetic-image-transport \
+  ros-noetic-tf \
+  ros-noetic-message-runtime \
+  ros-noetic-sensor-msgs \
+  ros-noetic-std-msgs \
+  ros-noetic-roscpp \
+  ros-noetic-rospy
+```
+
+## 6.4. Preparar el vocabulario
+
+Descomprimir el vocabulario de ORB-SLAM3:
+
+```bash
+cd "$HOME/Escritorio/ORB_SLAM3_fork/Vocabulary"
+
+tar -xf ORBvoc.txt.tar.gz
+```
+
+Copiarlo al wrapper:
+
+```bash
+cp ORBvoc.txt \
+"$HOME/ros1_ws/src/orb_slam3_ros_wrapper/config/ORBvoc.txt"
+```
+
+## 6.5. Compilar el wrapper
+
+Limpiar la compilación anterior:
+
+```bash
+cd "$HOME/ros1_ws"
+
+rm -rf build devel
+```
+
+Cargar ROS:
+
+```bash
+source /opt/ros/noetic/setup.bash
+```
+
+Compilar siempre con un solo proceso:
+
+```bash
+catkin_make -j1 \
+-DOpenCV_DIR=/usr/local/lib/cmake/opencv4
+```
+
+Cargar el workspace:
+
+```bash
+source "$HOME/ros1_ws/devel/setup.bash"
+```
+
+# 7. INSTALAR jpeg_to_mono
+
+Copiar el paquete desde el repositorio de **OrbVIsense Navigator**:
+
+```bash
+cd "$HOME/ros1_ws/src"
+
+cp -r "$HOME/Escritorio/OrbVisense-Navigator/jpeg_to_mono/jpeg_to_mono" .
+```
+
+Comprobar:
+
+```bash
+ls -lah "$HOME/ros1_ws/src/jpeg_to_mono"
+```
+
+Debe quedar ubicado en:
+
+```text
+$HOME/ros1_ws/src/jpeg_to_mono
+```
+
+Compilar:
+
+```bash
+cd "$HOME/ros1_ws"
+
+source /opt/ros/noetic/setup.bash
+
+catkin_make -j1 \
+-DOpenCV_DIR=/usr/local/lib/cmake/opencv4
+```
+
+# 8. INSTALAR rosbridge_suite
+
+Descargar `rosbridge_suite`:
+
+```bash
+cd "$HOME/ros1_ws/src"
+
+git clone --branch ros1 --depth 1 \
+https://github.com/RobotWebTools/rosbridge_suite.git
+```
+
+Instalar la dependencia necesaria:
+
+```bash
+sudo apt update
+
+sudo apt install -y ros-noetic-rosauth
+```
+
+Compilar:
+
+```bash
+cd "$HOME/ros1_ws"
+
+source /opt/ros/noetic/setup.bash
+
+catkin_make -j1
+```
+
+# 9. CARGAR EL WORKSPACE
+
+Cargar ROS:
+
+```bash
+source /opt/ros/noetic/setup.bash
+```
+
+Cargar el workspace:
+
+```bash
+source "$HOME/ros1_ws/devel/setup.bash"
+```
+
+# 10. COMPROBAR LOS PAQUETES ROS
+
+Cargar los entornos:
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+```
+
+Comprobar `orb_slam3_ros_wrapper`:
+
+```bash
+rospack find orb_slam3_ros_wrapper
+```
+
+Debe devolver:
+
+```text
+$HOME/ros1_ws/src/orb_slam3_ros_wrapper
+```
+
+Comprobar `jpeg_to_mono`:
+
+```bash
+rospack find jpeg_to_mono
+```
+
+Debe devolver:
+
+```text
+$HOME/ros1_ws/src/jpeg_to_mono
+```
+
+Comprobar `rosbridge_server`:
+
+```bash
+rospack find rosbridge_server
+```
+
+Debe devolver:
+
+```text
+$HOME/ros1_ws/src/rosbridge_suite/rosbridge_server
+```
+
+# 11. VERIFICACIÓN DE INSTALACIONES
+
+Comprobar que existe la biblioteca de ORB-SLAM3:
+
+```bash
+ls -lh "$HOME/Escritorio/ORB_SLAM3_fork/lib/libORB_SLAM3.so"
+```
+
+Comprobar el ejecutable del wrapper:
+
+```bash
+ls -lh "$HOME/ros1_ws/devel/lib/orb_slam3_ros_wrapper/orb_slam3_ros_wrapper_mono_inertial"
+```
+
+Comprobar que el wrapper utiliza la biblioteca del fork:
+
+```bash
+ldd "$HOME/ros1_ws/devel/lib/orb_slam3_ros_wrapper/orb_slam3_ros_wrapper_mono_inertial" | grep ORB_SLAM3
+```
+
+Debe apuntar a:
+
+```text
+$HOME/Escritorio/ORB_SLAM3_fork/lib/libORB_SLAM3.so
+```
+
+Comprobar todos los paquetes:
+
+```bash
+rospack find orb_slam3_ros_wrapper
+rospack find jpeg_to_mono
+rospack find rosbridge_server
+rospack find robot_pwm
+```
+
+Comprobar el nuevo mensaje ROS:
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+
+rosmsg show robot_pwm/PWM
+```
+
+Debe mostrar:
+
+```text
+int16 left
+int16 right
+```
+
+También se puede comprobar que el mensaje aparece en ROS:
+
+```bash
+rosmsg list | grep robot_pwm
+```
+
+Debe aparecer:
+
+```text
+robot_pwm/PWM
+```
+
+Comprobar los nodos:
+
+```bash
+rosnode list
+```
+
+Comprobar los topics:
+
+```bash
+rostopic list
+```
+
+El topic utilizado por el editor para enviar el movimiento del robot es:
+
+```text
+/robot/pwm
+```
+
+# 12. TOPICS PRINCIPALES
+
+### Imagen comprimida
+
+```text
+/cam0/image_raw/compressed
+```
+
+### Imagen convertida
+
+```text
+/cam0/image_raw
+```
+
+### IMU
+
+```text
+/imu0
+```
+
+### Pose de cámara
+
+```text
+/orb_slam3/camera_pose
+```
+
+### Mapa
+
+```text
+/orb_slam3/map_points
+```
+
+El mapa utiliza el tipo:
+
+```text
+sensor_msgs/PointCloud2
+```
+
+El frame utilizado por ORB-SLAM3 es:
+
+```text
+world
+```
+
+# 13. COMPROBAR TOPICS
+
+Lista completa:
+
+```bash
+rostopic list
+```
+
+Comprobar frecuencia de la imagen:
+
+```bash
+rostopic hz /cam0/image_raw
+```
+
+Comprobar frecuencia del IMU:
+
+```bash
+rostopic hz /imu0
+```
+
+Comprobar la pose:
+
+```bash
+rostopic echo /orb_slam3/camera_pose
+```
+
+Comprobar el mapa:
+
+```bash
+rostopic echo /orb_slam3/map_points
+```
+
+# 14. VENTANAS DE EJECUCIÓN
+
+## Terminal 1 — ROSCORE
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+roscore
+```
+
+Esta terminal mantiene activo el núcleo de ROS.
+
+## Terminal 2 — ROSBRIDGE
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+roslaunch rosbridge_server rosbridge_websocket.launch
+```
+
+Esto permite la comunicación mediante WebSocket.
+
+## Terminal 3 — jpeg_to_mono
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+rosrun jpeg_to_mono jpeg_to_mono_node
+```
+
+Su función es convertir:
+
+```text
+/cam0/image_raw/compressed
+```
+
+en:
+
+```text
+/cam0/image_raw
+```
+
+## Terminal 4 — ORB-SLAM3 MONO-INERTIAL
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/ros1_ws/devel/setup.bash"
+roslaunch orb_slam3_ros_wrapper euroc_monoimu.launch
+```
+
+El sistema utiliza:
+
+Imagen:
+
+```text
+/cam0/image_raw
+```
+
+IMU:
+
+```text
+/imu0
+```
+
+# 15. DISTRIBUCIÓN DE ARCHIVOS CLAVE
+
+## Ubicación de archivos de configuración y mapas
+
+### Archivo YAML de configuración
+
+Los archivos `.yaml` utilizados por el wrapper se encuentran en:
+
+```text
+~/ros1_ws/src/orb_slam3_ros_wrapper/config/
+```
+
+Ahí se puede editar o reemplazar el YAML correspondiente a la configuración de la cámara y el IMU.
+
+Para editar uno:
+
+```bash
+gedit "$HOME/ros1_ws/src/orb_slam3_ros_wrapper/config/NOMBRE_CONFIGURACION.yaml"
+```
+
+### Archivos de mapas `.osa`
+
+Los mapas guardados por ORB-SLAM3 se almacenan normalmente en:
+
+```text
+~/.ros/
+```
+
+Para localizar los mapas:
+
+```bash
+find ~/.ros -maxdepth 1 -type f -name "*.osa"
+```
+
+La carpeta `~/.ros` pertenece al usuario, no al workspace.
+
+Por eso, los mapas `.osa` **no se eliminan al borrar o reconstruir `~/ros1_ws`**.
+
+En resumen:
+
+```text
+~/ros1_ws/src/orb_slam3_ros_wrapper/config/
+└── Archivos YAML de configuración
+
+~/.ros/
+└── Archivos .osa de mapas/Atlas
+```
+
+**Regla práctica:** los `.yaml` se modifican dentro del `config` del wrapper; los `.osa` se buscan y administran dentro de `~/.ros`.
+
+# 16. RESUMEN DEL SISTEMA ADAPTADO
+
+### ORB-SLAM3 fork
+
+```text
+$HOME/Escritorio/ORB_SLAM3_fork
+```
+
+### ROS workspace
+
+```text
+$HOME/ros1_ws
+```
+
+### Wrapper
+
+```text
+$HOME/ros1_ws/src/orb_slam3_ros_wrapper
+```
+
+### JPEG converter
+
+```text
+$HOME/ros1_ws/src/jpeg_to_mono
+```
+
+### Rosbridge
+
+```text
+$HOME/ros1_ws/src/rosbridge_suite
+```

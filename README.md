@@ -274,3 +274,301 @@ sudo ldconfig
 ```
 
 Con todos los cambios y dependencias anteriores realizados, ya es posible continuar con la instalación completa de **ORBSLAM3 fork**, siempre que el sistema no contara previamente con el entorno de **ROS 1 Noetic en Ubuntu 20.04** y sus dependencias.
+
+# 1. UBICACIÓN DEL PAQUETE DE REINSTALACIÓN
+
+Descargar la carpeta `OrbVisense-Navigator` en el Escritorio.
+
+```bash
+cd "$HOME/Escritorio"
+
+git clone https://github.com/HeyItsLuan/OrbVisense-Navigator.git
+```
+
+La carpeta debe quedar ubicada en:
+
+```text
+$HOME/Escritorio/OrbVisense-Navigator
+```
+
+Contenido:
+
+```text
+.
+./ORB_SLAM3_fork_src_mod
+./ORB_SLAM3_fork_src_mod/src
+./dataset_to_rosbag.py
+./jpeg_to_mono
+./jpeg_to_mono/jpeg_to_mono
+./orbvisense_navigator
+./robot_pwm
+./robot_pwm/robot_pwm
+```
+
+# 2. ENTORNO UTILIZADO
+
+Sistema:
+
+```text
+Ubuntu 20.04
+```
+
+ROS:
+
+```text
+ROS1 Noetic
+```
+
+Workspace:
+
+```text
+$HOME/ros1_ws
+```
+
+# 3. REGLA DE COMPILACIÓN
+
+**IMPORTANTE:**
+
+Utilizar siempre:
+
+```bash
+make -j1
+```
+
+y:
+
+```bash
+catkin_make -j1
+```
+
+El parámetro `-j1` indica que la compilación utilizará un solo proceso.
+
+Aunque el equipo pueda soportar compilaciones paralelas, se utilizará **siempre `-j1` durante la instalación y compilación del proyecto** para evitar saturar los recursos del sistema y reducir el riesgo de que el equipo se congele.
+
+NO utilizar:
+
+```bash
+make -j4
+make -j$(nproc)
+catkin_make -j4
+```
+
+Si un archivo `build.sh` utiliza:
+
+```bash
+make -j4
+```
+
+cambiarlo por:
+
+```bash
+make -j1
+```
+
+Para editarlo:
+
+```bash
+gedit "$HOME/Escritorio/ORB_SLAM3_fork/build.sh"
+```
+
+# 4. INSTALAR ORB-SLAM3 FORK
+
+Este es el primer paso real de la instalación.
+
+### 4.1. Clonar el fork de ORB-SLAM3
+
+```bash
+cd "$HOME/Escritorio"
+
+git clone https://github.com/Lab-of-AI-and-Robotics/ORB_SLAM3.git ORB_SLAM3_fork
+```
+
+Esto crea:
+
+```text
+$HOME/Escritorio/ORB_SLAM3_fork
+```
+
+### 4.2. Copiar las modificaciones de OrbVIsense Navigator
+
+El repositorio `OrbVisense-Navigator` contiene los archivos `.cc` modificados del fork de ORB-SLAM3.
+
+Copiar los archivos:
+
+```bash
+cp "$HOME/Escritorio/OrbVisense-Navigator/ORB_SLAM3_fork_src_mod/src/"*.cc \
+   "$HOME/Escritorio/ORB_SLAM3_fork/src/"
+```
+
+Los archivos modificados son:
+
+```text
+FrameDrawer.cc
+ImuTypes.cc
+MapDrawer.cc
+Optimizer.cc
+Tracking.cc
+```
+
+El repositorio de OrbVIsense Navigator contiene únicamente estas modificaciones dentro de:
+
+```text
+ORB_SLAM3_fork_src_mod/src/
+```
+
+### 4.3. Verificar la configuración de OpenCV
+
+El `CMakeLists.txt` principal de ORB-SLAM3 debe utilizar **OpenCV 4.4**.
+
+Comprobar qué versión solicita actualmente:
+
+```bash
+grep -n "find_package(OpenCV" \
+"$HOME/Escritorio/ORB_SLAM3_fork/CMakeLists.txt"
+```
+
+Debe aparecer:
+
+```cmake
+find_package(OpenCV 4.4)
+```
+
+Si aparece otra versión, abrir el archivo:
+
+```bash
+gedit "$HOME/Escritorio/ORB_SLAM3_fork/CMakeLists.txt"
+```
+
+y cambiar únicamente la versión de OpenCV para dejar:
+
+```cmake
+find_package(OpenCV 4.4)
+```
+
+### 4.4. Limpiar compilaciones anteriores
+
+Antes de recompilar, eliminar las librerías y directorios de compilación anteriores:
+
+```bash
+cd "$HOME/Escritorio/ORB_SLAM3_fork"
+
+rm -rf lib/*
+rm -rf Thirdparty/DBoW2/lib/*
+rm -rf Thirdparty/DBoW2/build
+rm -rf Thirdparty/g2o/config.h
+rm -rf Thirdparty/g2o/build
+rm -rf build
+```
+
+### 4.5. Compilar DBoW2
+
+Entrar en DBoW2:
+
+```bash
+cd "$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/DBoW2"
+```
+
+Limpiar y crear el directorio de compilación:
+
+```bash
+rm -rf build
+mkdir build
+cd build
+```
+
+Configurar:
+
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=Release
+```
+
+Compilar utilizando siempre un solo proceso:
+
+```bash
+make -j1
+```
+
+### 4.6. Compilar g2o
+
+Entrar en g2o:
+
+```bash
+cd "$HOME/Escritorio/ORB_SLAM3_fork/Thirdparty/g2o"
+```
+
+Limpiar y crear el directorio de compilación:
+
+```bash
+rm -rf build
+mkdir build
+cd build
+```
+
+Configurar:
+
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=Release
+```
+
+Compilar utilizando siempre un solo proceso:
+
+```bash
+make -j1
+```
+
+### 4.7. Configurar ORB-SLAM3 fork para utilizar C++14
+
+Abrir el `CMakeLists.txt` principal:
+
+```bash
+gedit "$HOME/Escritorio/ORB_SLAM3_fork/CMakeLists.txt"
+```
+
+La configuración del estándar C++ debe utilizar C++14:
+
+```cmake
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+
+if(COMPILER_SUPPORTS_CXX14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+    add_definitions(-DCOMPILEDWITHC14)
+    message(STATUS "Using flag -std=c++14.")
+```
+
+Además, eliminar el bloque relacionado con RealSense que comienza en:
+
+```cmake
+# If RealSense SDK is found the library is added and its examples compiled
+```
+
+y continúa hasta el final del archivo.
+
+Se utiliza el comentario como referencia para localizar el bloque, en lugar de depender de un número de línea concreto.
+
+### 4.8. Compilar ORB-SLAM3 fork
+
+Limpiar la compilación:
+
+```bash
+cd "$HOME/Escritorio/ORB_SLAM3_fork"
+
+rm -rf build
+mkdir build
+cd build
+```
+
+Configurar:
+
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=Release
+```
+
+Compilar utilizando siempre un solo proceso:
+
+```bash
+make -j1
+```
+
+La compilación debe finalizar correctamente y generar las librerías de ORB-SLAM3.
+

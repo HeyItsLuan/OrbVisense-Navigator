@@ -1607,3 +1607,9 @@ If the robot loses a valid pose, the system attempts to recover a valid pose by 
 Once a valid pose has been recovered, the system can calculate the route again from the new position.
 
 In this way, navigation can adapt to robot deviations and changes in pose estimation.
+
+## Video Demonstration
+
+A demonstration of the OrbVisense Navigator autonomous navigation system is available on YouTube:
+
+[Watch the video demonstration](https://youtu.be/H9FZ5tJ7xmQ)
